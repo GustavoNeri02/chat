@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 void main() {
   runApp(MyApp());
-  Firestore.instance.collection("col").document("doc").setData({"texto": "Gustavo"});
-
+  Firestore.instance.collection("mensagens").document("msg1").setData({//.update
+    "texto": "Olá Gustavo gut",
+    "from" : "Vitória",
+    "lida": false});
 }
 
 class MyApp extends StatelessWidget {
