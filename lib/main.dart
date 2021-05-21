@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async{
   runApp(MyApp());
-  Firestore.instance.collection("mensagens").document("msg1").setData({//.update
-    "texto": "Olá Gustavo gut",
-    "from" : "Vitória",
-    "lida": false});
+  Firestore.instance.collection("mensagens").document("msg1").snapshots().listen((event) {
+    print(event.data);
+  });
 }
 
 class MyApp extends StatelessWidget {
