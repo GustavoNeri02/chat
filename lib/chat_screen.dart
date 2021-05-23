@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chat/chat_message.dart';
 import 'package:chat/text_composer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,16 +34,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final GoogleSignInAccount googleSignInAccount =
-          await googleSignIn.signIn();
+      await googleSignIn.signIn();
       final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
+      await googleSignInAccount.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.getCredential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken);
 
       final AuthResult authResult =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
       final FirebaseUser user = authResult.user;
 
@@ -71,7 +72,10 @@ class _ChatScreenState extends State<ChatScreen> {
       StorageUploadTask task = FirebaseStorage.instance
           .ref()
           .child("imagens")
-          .child(DateTime.now().millisecondsSinceEpoch.toString())
+          .child(DateTime
+          .now()
+          .millisecondsSinceEpoch
+          .toString())
           .putFile(imgFile);
       StorageTaskSnapshot taskSnapshot = await task.onComplete;
       String url = await taskSnapshot.ref.getDownloadURL();
@@ -97,29 +101,25 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
               child: StreamBuilder<QuerySnapshot>(
-            stream: Firestore.instance.collection("mensagens").snapshots(),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                  return CircularProgressIndicator();
-                default:
-                  List<DocumentSnapshot> documents =
+                stream: Firestore.instance.collection("mensagens").snapshots(),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return CircularProgressIndicator();
+                    default:
+                      List<DocumentSnapshot> documents =
                       snapshot.data.documents.reversed.toList();
-                  return ListView.builder(
-                    itemCount: documents.length,
-                    reverse: true,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(
-                          documents[index].data["text"],
-                        ),
+                      return ListView.builder(
+                        itemCount: documents.length,
+                        reverse: true,
+                        itemBuilder: (context, index) {
+                          return ChatMessage(map: documents[index].data,);
+                        },
                       );
-                    },
-                  );
-              }
-            },
-          )),
+                  }
+                },
+              )),
           TextComposer(_sendMessages),
         ],
       ),
