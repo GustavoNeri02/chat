@@ -21,11 +21,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   FirebaseUser _currentUser;
 
+  bool _isloading = false;
+
   @override
   void initState() {
     super.initState();
     FirebaseAuth.instance.onAuthStateChanged.listen((user) {
-      _currentUser = user;
+      setState(() {
+        _currentUser = user;
+      });
+
     });
   }
 
@@ -66,9 +71,13 @@ class _ChatScreenState extends State<ChatScreen> {
     Map<String, dynamic> map = {
       "uid": user.uid,
       "senderName": user.displayName,
-      "senderPhotoUrl": user.photoUrl
+      "senderPhotoUrl": user.photoUrl,
+      "time": Timestamp.now()
     };
     if (imgFile != null) {
+      setState(() {
+        _isloading = true;
+      });
       StorageUploadTask task = FirebaseStorage.instance
           .ref()
           .child("imagens")
@@ -86,6 +95,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     Firestore.instance.collection("mensagens").add(map);
+
+    setState(() {
+      _isloading = false;
+    });
   }
 
   @override
@@ -93,15 +106,26 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title: Text("Olá"),
+        title: _currentUser != null? Text("Olá ${_currentUser.displayName}"): Text("Não logado.."),
         centerTitle: true,
         elevation: 0,
+        actions: [_currentUser !=null ? BackButton(onPressed: (){
+          setState(() {
+            FirebaseAuth.instance.signOut();
+            googleSignIn.signOut();
+            scaffoldKey.currentState.showSnackBar(SnackBar(
+              content: Text("Você saiu..."),
+            ));
+          });
+        },
+        ): IconButton(icon: Icon(Icons.add), onPressed: (){}),
+        ],
       ),
       body: Column(
         children: [
           Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance.collection("mensagens").snapshots(),
+                stream: Firestore.instance.collection("mensagens").orderBy("time").snapshots(),
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
@@ -120,6 +144,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
                 },
               )),
+          _isloading? LinearProgressIndicator(): Container(),
           TextComposer(_sendMessages),
         ],
       ),
