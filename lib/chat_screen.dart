@@ -116,19 +116,52 @@ class _ChatScreenState extends State<ChatScreen> {
             : Text("Não logado.."),
         centerTitle: true,
         elevation: 0,
+        leading: _currentUser != null
+            ? BackButton(
+                onPressed: () {
+                  setState(() {
+                    FirebaseAuth.instance.signOut();
+                    googleSignIn.signOut();
+                    scaffoldKey.currentState.showSnackBar(SnackBar(
+                      content: Text("Você saiu..."),
+                    ));
+                  });
+                },
+              )
+            : Container(),
         actions: [
           _currentUser != null
-              ? BackButton(
-                  onPressed: () {
-                    setState(() {
-                      FirebaseAuth.instance.signOut();
-                      googleSignIn.signOut();
-                      scaffoldKey.currentState.showSnackBar(SnackBar(
-                        content: Text("Você saiu..."),
-                      ));
-                    });
-                  },
-                )
+              ? IconButton(icon: Icon(Icons.more_vert), onPressed: (){
+                showDialog(context: context, builder: (context){
+                  return AlertDialog(
+                    title: Text("Apagar suas mensagens?"),
+                    content: Text("Você irá apagar todas as suas mensagens!",),
+                    actions: [
+                      TextButton(
+                        child: Text("confirmar",
+                            style: TextStyle(color: Colors.grey)),
+                        onPressed: (){
+                          Firestore.instance
+                              .collection("mensagens")
+                              .getDocuments()
+                              .then((snapshot) {
+                            for (DocumentSnapshot document in snapshot.documents) {
+                              if(document["uid"] == _currentUser.uid){
+                                document.reference.delete();
+                              }
+                            }
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                      TextButton(onPressed: (){
+                        Navigator.pop(context);
+                      }, child: Text("Cancelar"))
+                    ],
+                  );
+                });
+
+          })
               : Container()
         ],
       ),
