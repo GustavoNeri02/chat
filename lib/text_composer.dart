@@ -31,31 +31,42 @@ class _TextComposerState extends State<TextComposer> {
         children: [
           IconButton(
               icon: Icon(Icons.camera),
-              onPressed: () async{
-                final PickedFile imgPickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+              onPressed: () async {
+                final PickedFile imgPickedFile =
+                    await ImagePicker().getImage(source: ImageSource.gallery);
                 final File imgFile = File(imgPickedFile.path);
-                if( imgFile != null){
+                if (imgFile != null) {
                   widget.sendMessage(imgFile: imgFile);
                 }
               }),
           Expanded(
-            child: TextField(
-              controller: textEditingController,
-              decoration:
-                  InputDecoration.collapsed(hintText: "Enviar uma mensagem..."),
-              onChanged: (text) {
-                setState(() {
-                  _isComposing = text.isNotEmpty;
-                });
-              },
-              onSubmitted: (text) {
-                widget.sendMessage(text: textEditingController.text);
-                _resetTextField();
-              },
+            child: Container(
+              height: 30,
+              decoration: BoxDecoration(
+                  color: Color(0xffe5e5e5),
+                  borderRadius: BorderRadius.circular(50)),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20.0, top: 5),
+                child: TextField(
+                  controller: textEditingController,
+                  decoration: InputDecoration.collapsed(
+                      hintText: "Enviar uma mensagem..."),
+                  onChanged: (text) {
+                    setState(() {
+                      _isComposing = text.isNotEmpty;
+                    });
+                  },
+                  onSubmitted: (text) {
+                    widget.sendMessage(text: textEditingController.text);
+                    _resetTextField();
+                  },
+                ),
+              ),
             ),
           ),
           IconButton(
             icon: Icon(Icons.send),
+            disabledColor: Color(0xffe5e5e5),
             onPressed: _isComposing
                 ? () {
                     widget.sendMessage(text: textEditingController.text);

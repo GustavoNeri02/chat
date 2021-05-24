@@ -78,7 +78,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _isloading = true;
       });
       StorageUploadTask task = FirebaseStorage.instance
-          .ref().child("imagens").child(
+          .ref()
+          .child("imagens")
+          .child(
             user.uid + DateTime.now().millisecondsSinceEpoch.toString(),
           )
           .putFile(imgFile);
@@ -102,6 +104,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+            colors: [Color(0xff320007), Color(0xff510505)],
+            stops: [0, 0.6],
+          )),
+        ),
         title: _currentUser != null
             ? Text("Olá ${_currentUser.displayName}")
             : Text("Não logado.."),
@@ -120,41 +129,52 @@ class _ChatScreenState extends State<ChatScreen> {
                     });
                   },
                 )
-              : IconButton(icon: Icon(Icons.add), onPressed: () {}),
+              : Container()
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-            stream: Firestore.instance
-                .collection("mensagens")
-                .orderBy("time")
-                .snapshots(),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                  return CircularProgressIndicator();
-                default:
-                  List<DocumentSnapshot> documents =
-                      snapshot.data.documents.reversed.toList();
-                  return ListView.builder(
-                    itemCount: documents.length,
-                    reverse: true,
-                    itemBuilder: (context, index) {
-                      return ChatMessage(
-                        map: documents[index].data,
-                        mine: documents[index].data["uid"] == _currentUser?.uid,
-                      );
-                    },
-                  );
-              }
-            },
-          )),
-          _isloading ? LinearProgressIndicator() : Container(),
-          TextComposer(_sendMessages),
-        ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xff14213d), Color(0xff142130)], //14213d
+              stops: [0.3, 1]),
+          color: Color(0xff14213d), //14213d
+        ),
+        child: Column(
+          children: [
+            Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance
+                  .collection("mensagens")
+                  .orderBy("time")
+                  .snapshots(),
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                  case ConnectionState.waiting:
+                    return CircularProgressIndicator();
+                  default:
+                    List<DocumentSnapshot> documents =
+                        snapshot.data.documents.reversed.toList();
+                    return ListView.builder(
+                      itemCount: documents.length,
+                      reverse: true,
+                      itemBuilder: (context, index) {
+                        return ChatMessage(
+                          map: documents[index].data,
+                          mine:
+                              documents[index].data["uid"] == _currentUser?.uid,
+                        );
+                      },
+                    );
+                }
+              },
+            )),
+            _isloading ? LinearProgressIndicator() : Container(),
+            TextComposer(_sendMessages),
+          ],
+        ),
       ),
     );
   }
