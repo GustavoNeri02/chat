@@ -30,7 +30,6 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _currentUser = user;
       });
-
     });
   }
 
@@ -39,16 +38,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final GoogleSignInAccount googleSignInAccount =
-      await googleSignIn.signIn();
+          await googleSignIn.signIn();
       final GoogleSignInAuthentication googleSignInAuthentication =
-      await googleSignInAccount.authentication;
+          await googleSignInAccount.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.getCredential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken);
 
       final AuthResult authResult =
-      await FirebaseAuth.instance.signInWithCredential(credential);
+          await FirebaseAuth.instance.signInWithCredential(credential);
 
       final FirebaseUser user = authResult.user;
 
@@ -79,12 +78,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _isloading = true;
       });
       StorageUploadTask task = FirebaseStorage.instance
-          .ref()
-          .child("imagens")
-          .child(DateTime
-          .now()
-          .millisecondsSinceEpoch
-          .toString())
+          .ref().child("imagens").child(
+            user.uid + DateTime.now().millisecondsSinceEpoch.toString(),
+          )
           .putFile(imgFile);
       StorageTaskSnapshot taskSnapshot = await task.onComplete;
       String url = await taskSnapshot.ref.getDownloadURL();
@@ -106,47 +102,57 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title: _currentUser != null? Text("Olá ${_currentUser.displayName}"): Text("Não logado.."),
+        title: _currentUser != null
+            ? Text("Olá ${_currentUser.displayName}")
+            : Text("Não logado.."),
         centerTitle: true,
         elevation: 0,
-        actions: [_currentUser !=null ? BackButton(onPressed: (){
-          setState(() {
-            FirebaseAuth.instance.signOut();
-            googleSignIn.signOut();
-            scaffoldKey.currentState.showSnackBar(SnackBar(
-              content: Text("Você saiu..."),
-            ));
-          });
-        },
-        ): IconButton(icon: Icon(Icons.add), onPressed: (){}),
+        actions: [
+          _currentUser != null
+              ? BackButton(
+                  onPressed: () {
+                    setState(() {
+                      FirebaseAuth.instance.signOut();
+                      googleSignIn.signOut();
+                      scaffoldKey.currentState.showSnackBar(SnackBar(
+                        content: Text("Você saiu..."),
+                      ));
+                    });
+                  },
+                )
+              : IconButton(icon: Icon(Icons.add), onPressed: () {}),
         ],
       ),
       body: Column(
         children: [
           Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance.collection("mensagens").orderBy("time").snapshots(),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return CircularProgressIndicator();
-                    default:
-                      List<DocumentSnapshot> documents =
+            stream: Firestore.instance
+                .collection("mensagens")
+                .orderBy("time")
+                .snapshots(),
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                case ConnectionState.waiting:
+                  return CircularProgressIndicator();
+                default:
+                  List<DocumentSnapshot> documents =
                       snapshot.data.documents.reversed.toList();
-                      return ListView.builder(
-                        itemCount: documents.length,
-                        reverse: true,
-                        itemBuilder: (context, index) {
-                          return ChatMessage(
-                            map: documents[index].data,
-                            mine: documents[index].data["uid"] == _currentUser?.uid,);
-                        },
+                  return ListView.builder(
+                    itemCount: documents.length,
+                    reverse: true,
+                    itemBuilder: (context, index) {
+                      return ChatMessage(
+                        map: documents[index].data,
+                        mine: documents[index].data["uid"] == _currentUser?.uid,
                       );
-                  }
-                },
-              )),
-          _isloading? LinearProgressIndicator(): Container(),
+                    },
+                  );
+              }
+            },
+          )),
+          _isloading ? LinearProgressIndicator() : Container(),
           TextComposer(_sendMessages),
         ],
       ),
