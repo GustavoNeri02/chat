@@ -2,15 +2,7 @@
 
 App 7 Chat Online, Udemy
 
-## Getting Started
+Aplicativo de chat em Flutter utilizando Firebase e autenticação de contas do Google.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![inicial](https://user-images.githubusercontent.com/47922321/119572696-88e7e480-bd89-11eb-9844-8c935001cf86.png)
+![2](https://user-images.githubusercontent.com/47922321/119572694-884f4e00-bd89-11eb-8a1a-507613a37205.png)
