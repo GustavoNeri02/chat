@@ -186,7 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
                   case ConnectionState.waiting:
-                    return CircularProgressIndicator();
+                    return Center(child: CircularProgressIndicator());
                   default:
                     List<DocumentSnapshot> documents =
                         snapshot.data.documents.reversed.toList();

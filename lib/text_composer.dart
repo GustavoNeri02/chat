@@ -49,6 +49,7 @@ class _TextComposerState extends State<TextComposer> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 20.0, top: 5),
                 child: TextField(
+                  style: TextStyle(color: Colors.black),
                   keyboardType: TextInputType.text,
                   //tirando foco quando Navigator.pop
                   focusNode: FocusNode(canRequestFocus: false),
