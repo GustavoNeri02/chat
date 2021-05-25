@@ -76,7 +76,7 @@ class ChatMessage extends StatelessWidget {
                                         topRight: Radius.circular(40)),
                                 child: Image.network(
                                   map["imageUrl"],
-                                  width: 150,
+                                  width: 200,
                                 ),
                               )
                             : Padding(

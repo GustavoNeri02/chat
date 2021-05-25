@@ -57,16 +57,19 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _sendMessages({String text, File imgFile}) async {
-    final FirebaseUser user = await _getUser();
-
-    if (user == null) {
+  void _logIn() async {
+    _currentUser = await _getUser();
+    setState(() {});
+    if (_currentUser == null) {
       scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text("Não foi possível fazer o login, tente novamente"),
         backgroundColor: Colors.red,
       ));
     }
+  }
 
+  void _sendMessages({String text, File imgFile, FirebaseUser user}) async {
+    user = _currentUser;
     Map<String, dynamic> map = {
       "uid": user.uid,
       "senderName": user.displayName,
@@ -113,7 +116,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: _currentUser != null
             ? Text("Olá ${_currentUser.displayName}")
-            : Text("Não logado.."),
+            : Text("Bate-Papo do Gustavo"),
         centerTitle: true,
         elevation: 0,
         leading: _currentUser != null
@@ -131,37 +134,45 @@ class _ChatScreenState extends State<ChatScreen> {
             : Container(),
         actions: [
           _currentUser != null
-              ? IconButton(icon: Icon(Icons.more_vert), onPressed: (){
-                showDialog(context: context, builder: (context){
-                  return AlertDialog(
-                    title: Text("Apagar suas mensagens?"),
-                    content: Text("Você irá apagar todas as suas mensagens!",),
-                    actions: [
-                      TextButton(
-                        child: Text("confirmar",
-                            style: TextStyle(color: Colors.grey)),
-                        onPressed: (){
-                          Firestore.instance
-                              .collection("mensagens")
-                              .getDocuments()
-                              .then((snapshot) {
-                            for (DocumentSnapshot document in snapshot.documents) {
-                              if(document["uid"] == _currentUser.uid){
-                                document.reference.delete();
-                              }
-                            }
-                          });
-                          Navigator.pop(context);
-                        },
-                      ),
-                      TextButton(onPressed: (){
-                        Navigator.pop(context);
-                      }, child: Text("Cancelar"))
-                    ],
-                  );
-                });
-
-          })
+              ? IconButton(
+                  icon: Icon(Icons.delete_sweep),
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text("Apagar suas mensagens?"),
+                            content: Text(
+                              "Você irá apagar todas as suas mensagens!",
+                            ),
+                            actions: [
+                              TextButton(
+                                child: Text("confirmar",
+                                    style: TextStyle(color: Colors.grey)),
+                                onPressed: () {
+                                  Firestore.instance
+                                      .collection("mensagens")
+                                      .getDocuments()
+                                      .then((snapshot) {
+                                    for (DocumentSnapshot document
+                                        in snapshot.documents) {
+                                      if (document["uid"] == _currentUser.uid) {
+                                        document.reference.delete();
+                                      }
+                                    }
+                                  });
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("Cancelar"))
+                            ],
+                          );
+                        });
+                  })
               : Container()
         ],
       ),
@@ -174,40 +185,71 @@ class _ChatScreenState extends State<ChatScreen> {
               stops: [0.3, 1]),
           color: Color(0xff14213d), //14213d
         ),
-        child: Column(
-          children: [
-            Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-              stream: Firestore.instance
-                  .collection("mensagens")
-                  .orderBy("time")
-                  .snapshots(),
-              builder: (context, snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.none:
-                  case ConnectionState.waiting:
-                    return Center(child: CircularProgressIndicator());
-                  default:
-                    List<DocumentSnapshot> documents =
-                        snapshot.data.documents.reversed.toList();
-                    return ListView.builder(
-                      itemCount: documents.length,
-                      reverse: true,
-                      itemBuilder: (context, index) {
-                        return ChatMessage(
-                          map: documents[index].data,
-                          mine:
-                              documents[index].data["uid"] == _currentUser?.uid,
-                        );
+        child: _currentUser != null
+            ? Column(
+                children: [
+                  Expanded(
+                      child: StreamBuilder<QuerySnapshot>(
+                    stream: Firestore.instance
+                        .collection("mensagens")
+                        .orderBy("time")
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                        case ConnectionState.waiting:
+                          return Center(child: CircularProgressIndicator());
+                        default:
+                          List<DocumentSnapshot> documents =
+                              snapshot.data.documents.reversed.toList();
+                          return ListView.builder(
+                            itemCount: documents.length,
+                            reverse: true,
+                            itemBuilder: (context, index) {
+                              return ChatMessage(
+                                map: documents[index].data,
+                                mine: documents[index].data["uid"] ==
+                                    _currentUser?.uid,
+                              );
+                            },
+                          );
+                      }
+                    },
+                  )),
+                  _isloading ? LinearProgressIndicator() : Container(),
+                  TextComposer(_sendMessages),
+                ],
+              )
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Entre\npara\nparticipar",
+                      style: TextStyle(color: Colors.white, fontSize: 50),
+                      textAlign: TextAlign.center,
+                    ),
+                    MaterialButton(
+                      onPressed: () {
+                        _logIn();
                       },
-                    );
-                }
-              },
-            )),
-            _isloading ? LinearProgressIndicator() : Container(),
-            TextComposer(_sendMessages),
-          ],
-        ),
+                      minWidth: 200,
+                      height: 100,
+                      child: Text(
+                        "Entrar",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      color: Color(0xff510505),
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: Colors.white,
+                          width: 5,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
       ),
     );
   }
