@@ -210,6 +210,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 map: documents[index].data,
                                 mine: documents[index].data["uid"] ==
                                     _currentUser?.uid,
+                                id: documents[index].documentID,
+                                user: _currentUser,
                               );
                             },
                           );
@@ -246,6 +248,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           width: 5,
                         ),
                       ),
+                      elevation: 8,
+                      highlightElevation: 2,
                     )
                   ],
                 ),
